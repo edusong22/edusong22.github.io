@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>버스로 그리는 우리 도시 — 수원특례시 도시공간구조 탐구활동</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<style>
+  :root{
+    --bg:#F6F5F1;
+    --paper:#FFFFFF;
+    --ink:#1F2A24;
+    --ink-soft:#5B665F;
+    --line:#1E5F74;
+    --line-soft:#DCEAEC;
+    --accent:#E8622C;
+    --accent-soft:#FBE3D6;
+    --border:#DDD8C9;
+    --residential:#3F9A63;
+    --commercial:#D9483D;
+    --industrial:#7C6F9C;
+    --font-display:'Black Han Sans', sans-serif;
+    --font-body:'Noto Sans KR', sans-serif;
+    --font-mono:'JetBrains Mono', monospace;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.6;
+    padding-bottom:80px;
+  }
+  a{ color:var(--line); }
+
+  /* ---------- Masthead ---------- */
+  .masthead{
+    background:var(--ink);
+    color:var(--bg);
+    padding:38px 20px 30px;
+    position:relative;
+    overflow:hidden;
+  }
+  .masthead::after{
+    content:"";
+    position:absolute; right:-40px; bottom:-60px;
+    width:260px; height:260px; border-radius:50%;
+    background:radial-gradient(circle, rgba(232,98,44,0.35), transparent 70%);
+  }
+  .masthead-inner{ max-width:980px; margin:0 auto; position:relative; z-index:1; }
+  .eyebrow{
+    font-family:var(--font-mono); font-size:13px; letter-spacing:.12em;
+    color:var(--accent); text-transform:uppercase; margin:0 0 10px;
+  }
+  h1.title{
+    font-family:var(--font-display); font-weight:400;
+    font-size:clamp(30px,5vw,52px); line-height:1.15; margin:0 0 12px;
+    letter-spacing:.01em;
+  }
+  .masthead p.lead{
+    max-width:640px; color:#D8DAD3; font-size:15.5px; margin:0 0 22px;
+  }
+  .student-bar{
+    display:flex; flex-wrap:wrap; gap:10px;
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.15);
+    border-radius:10px; padding:14px;
+  }
+  .student-bar label{
+    display:flex; flex-direction:column; gap:5px;
+    font-size:12px; color:#B9BEB6; flex:1; min-width:120px;
+  }
+  .student-bar input{
+    font-family:var(--font-body); font-size:14px; padding:8px 10px;
+    border-radius:6px; border:1px solid rgba(255,255,255,0.2);
+    background:rgba(255,255,255,0.95); color:var(--ink);
+  }
+
+  /* ---------- Route track (signature nav) ---------- */
+  .route-track-wrap{
+    background:var(--paper);
+    border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:50;
+    box-shadow:0 2px 10px rgba(0,0,0,0.04);
+  }
+  .route-track{
+    max-width:980px; margin:0 auto; padding:14px 20px 10px;
+    position:relative;
+  }
+  .track-line{
+    position:absolute; left:38px; right:38px; top:24px;
+    height:4px; background:var(--line-soft); border-radius:2px;
+  }
+  .track-fill{
+    position:absolute; left:38px; top:24px; height:4px;
+    background:var(--line); border-radius:2px; width:0%;
+    transition:width .45s ease;
+  }
+  .track-bus{
+    position:absolute; top:11px; left:38px; font-size:20px;
+    transform:translateX(-50%); transition:left .45s ease;
+    filter:drop-shadow(0 2px 2px rgba(0,0,0,0.25));
+  }
+  .stops{ display:flex; justify-content:space-between; position:relative; }
+  .stop{
+    text-decoration:none; color:var(--ink-soft); text-align:center;
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:6px;
+    font-size:11.5px; padding-top:2px; min-width:56px;
+  }
+  .stop-num{
+    width:30px; height:30px; border-radius:50%;
+    background:var(--paper); border:3px solid var(--line-soft);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-mono); font-weight:600; font-size:13px;
+    color:var(--line); transition:all .3s ease;
+  }
+  .stop.active .stop-num{ border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
+  .stop.done .stop-num{ border-color:var(--line); background:var(--line); color:#fff; }
+  .stop-name{ font-weight:500; }
+  .stop.active .stop-name{ color:var(--accent); font-weight:700; }
+
+  /* ---------- Main layout ---------- */
+  main{ max-width:980px; margin:0 auto; padding:34px 20px 10px; }
+  section.step{
+    background:var(--paper);
+    border:1px solid var(--border);
+    border-left:6px solid var(--line);
+    border-radius:12px;
+    padding:26px 26px 28px;
+    margin-bottom:34px;
+    scroll-margin-top:110px;
+  }
+  .step-head{ display:flex; align-items:flex-start; gap:14px; margin-bottom:6px; }
+  .step-badge{
+    font-family:var(--font-mono); background:var(--line); color:#fff;
+    width:34px; height:34px; border-radius:50%; flex:none;
+    display:flex; align-items:center; justify-content:center; font-weight:600;
+  }
+  .step h2{ font-family:var(--font-display); font-weight:400; font-size:23px; margin:2px 0 6px; }
+  .step .step-desc{ color:var(--ink-soft); font-size:14.5px; margin:0 0 18px; max-width:720px; }
+  .callout{
+    background:#FBFAF6; border:1px dashed var(--border); border-radius:8px;
+    padding:12px 14px; font-size:13.5px; color:var(--ink-soft); margin:0 0 18px;
+  }
+  .callout b{ color:var(--ink); }
+
+  .btn-row{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:14px; }
+  .btn{
+    font-family:var(--font-body); font-size:13.5px; font-weight:500;
+    border:1px solid var(--border); background:var(--paper); color:var(--ink);
+    padding:9px 14px; border-radius:8px; cursor:pointer;
+    display:inline-flex; align-items:center; gap:7px; text-decoration:none;
+    transition:transform .12s ease, border-color .12s ease;
+  }
+  .btn:hover{ border-color:var(--line); transform:translateY(-1px); }
+  .btn.primary{ background:var(--line); border-color:var(--line); color:#fff; }
+  .btn.primary:hover{ background:#164A5B; }
+  .btn.accent{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .btn.accent:hover{ background:#C94F1E; }
+  .btn.ghost{ background:transparent; }
+  .btn.small{ padding:6px 10px; font-size:12.5px; }
+  .btn[disabled]{ opacity:.4; cursor:not-allowed; transform:none; }
+  .btn.active-toggle{ background:var(--ink); border-color:var(--ink); color:#fff; }
+  .btn.commercial-btn{ background:var(--commercial); border-color:var(--commercial); color:#fff; }
+  .btn.residential-btn{ background:var(--residential); border-color:var(--residential); color:#fff; }
+  .btn.industrial-btn{ background:var(--industrial); border-color:var(--industrial); color:#fff; }
+
+  .field-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:6px; }
+  .field{ display:flex; flex-direction:column; gap:5px; }
+  .field label{ font-size:12.5px; color:var(--ink-soft); font-weight:500; }
+  .field input, .field textarea, .field select{
+    font-family:var(--font-body); font-size:14px; padding:9px 10px;
+    border:1px solid var(--border); border-radius:7px; background:#fff; color:var(--ink);
+  }
+  .field input[disabled]{ background:#F1EFE8; color:var(--ink-soft); }
+  .field textarea{ resize:vertical; min-height:70px; }
+
+  /* Map */
+  #map{
+    height:460px; width:100%; border-radius:10px; border:1px solid var(--border);
+    margin-bottom:14px; cursor:default;
+  }
+  #map.mode-draw{ cursor:crosshair; }
+  #map.mode-pick{ cursor:cell; }
+  .map-toolbar{
+    display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+    background:#FBFAF6; border:1px solid var(--border); border-radius:9px;
+    padding:12px; margin-bottom:14px;
+  }
+  .mode-group{ display:flex; gap:6px; }
+  .swatches{ display:flex; gap:6px; align-items:center; }
+  .swatch{
+    width:22px; height:22px; border-radius:50%; border:2px solid transparent;
+    cursor:pointer; padding:0;
+  }
+  .swatch.selected{ border-color:var(--ink); transform:scale(1.15); }
+  .divider-v{ width:1px; align-self:stretch; background:var(--border); }
+  .route-name-input{ flex:1; min-width:160px; }
+  .route-name-input input{ width:100%; }
+
+  .route-list, .record-list{ display:flex; flex-direction:column; gap:8px; margin-top:6px; }
+  .route-chip{
+    display:flex; align-items:center; gap:10px; background:#FBFAF6;
+    border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:13.5px;
+  }
+  .route-chip .dot{ width:14px; height:14px; border-radius:50%; flex:none; }
+  .route-chip .info{ flex:1; }
+  .route-chip .info b{ display:block; }
+  .route-chip .info span{ color:var(--ink-soft); font-family:var(--font-mono); font-size:12px; }
+
+  /* ---------- Area tabs (지역 탐색) ---------- */
+  .area-tabs{ display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+  .area-tab{
+    flex:1; min-width:140px; padding:12px; border-radius:9px; border:2px solid var(--border);
+    background:#fff; font-weight:700; font-size:14px; cursor:pointer; color:var(--ink-soft);
+    font-family:var(--font-body); transition:all .15s ease;
+  }
+  .area-tab.industrial.active{ border-color:var(--industrial); background:#EEEBF5; color:#544A73; }
+  .area-tab.residential.active{ border-color:var(--residential); background:#EAF6EE; color:#276B44; }
+  .area-tab.commercial.active{ border-color:var(--commercial); background:#FBEAE8; color:#A02E25; }
+  .area-panel{ display:none; }
+  .area-panel.active{ display:block; }
+
+  .coord-box{
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    background:var(--accent-soft); border:1px solid #F1C3A5; border-radius:9px;
+    padding:12px 14px; margin-bottom:16px; font-size:13.5px;
+  }
+  .coord-box .coord-value{ font-family:var(--font-mono); font-weight:600; }
+  .coord-box.empty{ background:#F2F1EB; border-color:var(--border); color:var(--ink-soft); }
+
+  .upload-box{
+    border:2px dashed var(--border); border-radius:9px; padding:14px;
+    display:flex; align-items:center; gap:14px; margin-bottom:6px; flex-wrap:wrap;
+  }
+  .upload-preview{
+    width:120px; height:80px; border-radius:6px; object-fit:cover;
+    background:#F0EFE9; border:1px solid var(--border);
+  }
+  .upload-hint{ font-size:12.5px; color:var(--ink-soft); }
+
+  .record-card{
+    display:flex; gap:14px; background:#FBFAF6; border:1px solid var(--border);
+    border-radius:10px; padding:14px; align-items:flex-start;
+  }
+  .record-card img{ width:110px; height:78px; object-fit:cover; border-radius:6px; border:1px solid var(--border); flex:none; }
+  .record-card .noimg{
+    width:110px; height:78px; border-radius:6px; background:#EFEDE4; flex:none;
+    display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--ink-soft);
+  }
+  .record-card .body{ flex:1; }
+  .type-pill{
+    display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700;
+    padding:3px 9px; border-radius:20px; margin-bottom:5px;
+  }
+  .type-pill.residential{ background:#EAF6EE; color:#276B44; }
+  .type-pill.commercial{ background:#FBEAE8; color:#A02E25; }
+  .type-pill.industrial{ background:#EEEBF5; color:#544A73; }
+  .record-card .name{ font-weight:700; font-size:14.5px; margin:0 0 4px; }
+  .record-card .desc{ font-size:13px; color:var(--ink-soft); margin:0 0 6px; white-space:pre-wrap; }
+  .record-card .coord{ font-family:var(--font-mono); font-size:11.5px; color:#8A8377; }
+  .record-card .actions{ display:flex; gap:6px; margin-top:8px; }
+  .empty-note{ font-size:13px; color:var(--ink-soft); font-style:italic; padding:10px 0; }
+
+  /* ---------- Reflection questions ---------- */
+  .question-block{
+    border:1px solid var(--border); border-radius:10px; padding:18px;
+    background:#FBFAF6; margin-bottom:18px;
+  }
+  .q-title{ font-weight:700; font-size:15px; margin:0 0 10px; }
+  .keyword-row{ display:flex; flex-wrap:wrap; gap:7px; margin-bottom:12px; }
+  .keyword-chip{
+    font-family:var(--font-body); font-size:12.5px; padding:6px 11px; border-radius:20px;
+    border:1px solid var(--line-soft); background:#fff; color:var(--line); cursor:pointer;
+  }
+  .keyword-chip:hover{ background:var(--line-soft); }
+  .question-block textarea{
+    width:100%; min-height:100px; font-family:var(--font-body); font-size:14px;
+    padding:10px 12px; border:1px solid var(--border); border-radius:7px; resize:vertical;
+  }
+
+  .save-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:16px; }
+  .save-card{
+    border:1px solid var(--border); border-radius:10px; padding:16px; background:#FBFAF6;
+  }
+  .save-card h3{ margin:0 0 6px; font-size:15px; font-family:var(--font-display); font-weight:400; }
+  .save-card p{ margin:0 0 12px; font-size:13px; color:var(--ink-soft); }
+  .file-load{ font-size:12.5px; }
+
+  footer{ text-align:center; color:var(--ink-soft); font-size:12px; padding:30px 20px; }
+
+  @media (max-width:720px){
+    .field-grid, .save-grid{ grid-template-columns:1fr; }
+    .stop-name{ display:none; }
+  }
+  @media print{
+    .route-track-wrap, .map-toolbar, .btn-row, .btn, .mode-group, .save-grid, .student-bar input, .area-tabs{ display:none !important; }
+    .area-panel{ display:block !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="eyebrow">지리 탐구활동 · 도시공간구조</p>
+    <h1 class="title">버스로 그리는 우리 도시</h1>
+    <p class="lead">수원특례시 시내버스 노선을 따라가며 주거·상업·공업 지역이 어디에, 왜 그렇게 자리 잡았는지 지도 위에서 직접 확인합니다. 노선 검색부터 저장까지 다섯 정류장을 차례로 지나갑니다.</p>
+    <div class="student-bar">
+      <label>학교 / 학년<input id="s-school" placeholder="예: 수원고등학교 1학년"></label>
+      <label>이름<input id="s-name" placeholder="이름을 입력하세요"></label>
+      <label>활동 날짜<input id="s-date" type="date"></label>
+    </div>
+  </div>
+</header>
+
+<nav class="route-track-wrap">
+  <div class="route-track">
+    <div class="track-line"></div>
+    <div class="track-fill" id="trackFill"></div>
+    <div class="track-bus" id="trackBus">🚌</div>
+    <div class="stops">
+      <a class="stop" data-idx="0" href="#step1"><span class="stop-num">1</span><span class="stop-name">노선 검색</span></a>
+      <a class="stop" data-idx="1" href="#step2"><span class="stop-num">2</span><span class="stop-name">노선 그리기</span></a>
+      <a class="stop" data-idx="2" href="#step3"><span class="stop-num">3</span><span class="stop-name">지역 탐색</span></a>
+      <a class="stop" data-idx="3" href="#step4"><span class="stop-num">4</span><span class="stop-name">생각 정리</span></a>
+      <a class="stop" data-idx="4" href="#step5"><span class="stop-num">5</span><span class="stop-name">저장</span></a>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+  <!-- STEP 1 -->
+  <section class="step" id="step1">
+    <div class="step-head">
+      <div class="step-badge">1</div>
+      <div>
+        <h2>정류장 1 · 수원특례시 시내버스 노선 검색하기</h2>
+        <p class="step-desc">네이버지도에서 조사할 시내버스 노선 하나를 정합니다. 출발지부터 종점까지 어떤 동네를 지나는지 훑어보세요.</p>
+      </div>
+    </div>
+    <div class="callout"><b>Tip.</b> 네이버지도에서 노선 번호나 "수원 버스 노선"으로 검색하면 정류장 목록과 경로를 지도 위에서 바로 확인할 수 있어요.</div>
+    <div class="btn-row">
+      <a class="btn primary" target="_blank" rel="noopener" href="https://map.naver.com/p/search/수원 버스 노선">🗺️ 네이버지도에서 검색</a>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>조사할 버스 노선 번호</label><input id="bus-number" placeholder="예: 13-4"></div>
+      <div class="field"><label>운행 구간 (기점 ~ 종점)</label><input id="bus-range" placeholder="예: 수원역 ~ 광교중앙역"></div>
+      <div class="field" style="grid-column:1/-1;"><label>이 노선을 고른 이유</label><textarea id="bus-reason" placeholder="예: 수원역, 화성행궁, 광교신도시를 모두 지나가서 도시 변화가 잘 보일 것 같다."></textarea></div>
+    </div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="step" id="step2">
+    <div class="step-head">
+      <div class="step-badge">2</div>
+      <div>
+        <h2>정류장 2 · 지도 위에 내 버스 노선 그리기</h2>
+        <p class="step-desc">1번에서 찾은 노선이 지나는 길을 따라 지도를 클릭해 점을 찍으며 선을 그립니다. 노선은 <b>하나만</b> 그릴 수 있어요. 이 지도는 3번 활동에서도 계속 사용하니 노선을 다 그린 뒤에도 지우지 마세요.</p>
+      </div>
+    </div>
+
+    <div class="map-toolbar">
+      <div class="mode-group">
+        <button class="btn small active-toggle" id="modeDrawBtn" onclick="setMode('draw')">✏️ 노선 그리기</button>
+        <button class="btn small" id="modePickBtn" onclick="setMode('pick')">📍 위치 선택(마커펜)</button>
+        <button class="btn small" id="modeViewBtn" onclick="setMode('view')">🖐 지도 이동</button>
+      </div>
+      <div class="divider-v"></div>
+      <div class="swatches" id="swatches"></div>
+      <div class="divider-v"></div>
+      <div class="route-name-input"><input id="routeNameInput" placeholder="이 노선의 이름 (예: 13-4번 순환)"></div>
+      <button class="btn small" onclick="undoPoint()">↩️ 마지막 점 취소</button>
+      <button class="btn small primary" onclick="finishRoute()">✅ 이 노선 저장</button>
+      <button class="btn small ghost" onclick="clearAllRoutes()">🗑️ 노선 지우기</button>
+    </div>
+
+    <div id="map"></div>
+    <p class="upload-hint" id="modeHint">현재 모드: <b>✏️ 노선 그리기</b> — 지도를 클릭해서 버스가 지나는 길을 따라 점을 찍으세요.</p>
+
+    <div class="route-list" id="routeList"></div>
+  </section>
+
+  <!-- STEP 3: 지역 탐색 (탭) -->
+  <section class="step" id="step3">
+    <div class="step-head">
+      <div class="step-badge">3</div>
+      <div>
+        <h2>정류장 3 · 로드뷰로 지역 탐색하기</h2>
+        <p class="step-desc">탭을 눌러 공업지역 → 주거지역 → 상업지역 순서로 노선 근처를 살펴보세요. 위치를 고르면 로드뷰로 실제 모습을 확인하고, 캡처 이미지와 설명을 기록해 지도에 마커를 남길 수 있습니다.</p>
+      </div>
+    </div>
+
+    <div class="area-tabs">
+      <button class="area-tab industrial active" data-type="industrial" onclick="showAreaTab('industrial')">🏭 공업지역</button>
+      <button class="area-tab residential" data-type="residential" onclick="showAreaTab('residential')">🏠 주거지역</button>
+      <button class="area-tab commercial" data-type="commercial" onclick="showAreaTab('commercial')">🏬 상업지역</button>
+    </div>
+
+    <!-- 공업지역 패널 -->
+    <div class="area-panel industrial active" id="panel-industrial">
+      <div class="callout"><b>관찰 포인트.</b> 공장, 창고, 물류센터 등의 건물 형태와 화물차 통행, 굴뚝이나 대형 설비 유무를 살펴보고 주거지역과 떨어져 있는지 확인해보세요.</div>
+      <div class="btn-row"><button class="btn industrial-btn" onclick="goPickMode()">🗺️ 지도에서 위치 선택하기</button></div>
+      <div class="coord-box empty coordBox"><span>📍 선택된 위치 없음 — 위 버튼을 눌러 지도에서 지점을 클릭하세요</span></div>
+      <div class="btn-row">
+        <a class="btn primary kakaoRoadviewBtn" target="_blank" rel="noopener" href="#" onclick="return checkCoord(this)">🚶 카카오맵 로드뷰 열기</a>
+        <a class="btn googleStreetBtn" target="_blank" rel="noopener" href="#" onclick="return checkCoord(this)">🌍 구글 스트리트뷰 열기</a>
+      </div>
+      <p class="upload-hint">로드뷰 화면에서 마음에 드는 장면이 나오면 <b>화면 캡처(Windows: Win+Shift+S / Mac: Cmd+Shift+4)</b>를 한 뒤 아래에 업로드하세요.</p>
+      <div class="field-grid">
+        <div class="field"><label>위치 이름</label><input id="industrialName" placeholder="예: 정자동 공업단지"></div>
+        <div class="field"><label>선택된 좌표</label><input id="industrialCoord" readonly placeholder="지도에서 위치를 먼저 선택하세요"></div>
+      </div>
+      <div class="upload-box">
+        <img id="industrialPreview" class="upload-preview" style="display:none;">
+        <div>
+          <input type="file" id="industrialImgInput" accept="image/*" onchange="handleImageUpload(event,'industrial')">
+          <p class="upload-hint">캡처한 이미지 파일을 선택해 업로드하세요.</p>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:14px;">
+        <label>세부 설명 (건물 형태, 화물차, 설비 등)</label>
+        <textarea id="industrialDesc" placeholder="예: 1~2층 규모의 공장·창고 건물이 늘어서 있고 화물차 출입이 잦다."></textarea>
+      </div>
+      <div class="btn-row"><button class="btn industrial-btn" onclick="addRecord('industrial')">📌 공업지역으로 기록 추가 (지도에 마커 찍기)</button></div>
+      <div class="record-list" id="recordListIndustrial"></div>
+    </div>
+
+    <!-- 주거지역 패널 -->
+    <div class="area-panel residential" id="panel-residential">
+      <div class="callout"><b>관찰 포인트.</b> 단독주택, 연립·다세대, 아파트 단지 등 주택 유형을 구분해보고, 학교·공원과의 거리, 도로 폭과 조용한 정도를 살펴보세요.</div>
+      <div class="btn-row"><button class="btn residential-btn" onclick="goPickMode()">🗺️ 지도에서 위치 선택하기</button></div>
+      <div class="coord-box empty coordBox"><span>📍 선택된 위치 없음 — 위 버튼을 눌러 지도에서 지점을 클릭하세요</span></div>
+      <div class="btn-row">
+        <a class="btn primary kakaoRoadviewBtn" target="_blank" rel="noopener" href="#" onclick="return checkCoord(this)">🚶 카카오맵 로드뷰 열기</a>
+        <a class="btn googleStreetBtn" target="_blank" rel="noopener" href="#" onclick="return checkCoord(this)">🌍 구글 스트리트뷰 열기</a>
+      </div>
+      <p class="upload-hint">로드뷰 화면에서 마음에 드는 장면이 나오면 <b>화면 캡처(Windows: Win+Shift+S / Mac: Cmd+Shift+4)</b>를 한 뒤 아래에 업로드하세요.</p>
+      <div class="field-grid">
+        <div class="field"><label>위치 이름</label><input id="residentialName" placeholder="예: 매탄동 아파트 단지"></div>
+        <div class="field"><label>선택된 좌표</label><input id="residentialCoord" readonly placeholder="지도에서 위치를 먼저 선택하세요"></div>
+      </div>
+      <div class="upload-box">
+        <img id="residentialPreview" class="upload-preview" style="display:none;">
+        <div>
+          <input type="file" id="residentialImgInput" accept="image/*" onchange="handleImageUpload(event,'residential')">
+          <p class="upload-hint">캡처한 이미지 파일을 선택해 업로드하세요.</p>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:14px;">
+        <label>세부 설명 (주택 유형, 층수, 주변 시설 등)</label>
+        <textarea id="residentialDesc" placeholder="예: 15층 내외 아파트 단지가 이어져 있고, 단지 안에 놀이터와 초등학교가 붙어 있다."></textarea>
+      </div>
+      <div class="btn-row"><button class="btn residential-btn" onclick="addRecord('residential')">📌 주거지역으로 기록 추가 (지도에 마커 찍기)</button></div>
+      <div class="record-list" id="recordListResidential"></div>
+    </div>
+
+    <!-- 상업지역 패널 -->
+    <div class="area-panel commercial" id="panel-commercial">
+      <div class="callout"><b>관찰 포인트.</b> 간판 밀도와 상가 건물의 층수, 유동인구, 대로변·역세권 여부를 살펴보세요. 번화가 주변에 상점이 몰려 있는지 확인해보세요.</div>
+      <div class="btn-row"><button class="btn commercial-btn" onclick="goPickMode()">🗺️ 지도에서 위치 선택하기</button></div>
+      <div class="coord-box empty coordBox"><span>📍 선택된 위치 없음 — 위 버튼을 눌러 지도에서 지점을 클릭하세요</span></div>
+      <div class="btn-row">
+        <a class="btn primary kakaoRoadviewBtn" target="_blank" rel="noopener" href="#" onclick="return checkCoord(this)">🚶 카카오맵 로드뷰 열기</a>
+        <a class="btn googleStreetBtn" target="_blank" rel="noopener" href="#" onclick="return checkCoord(this)">🌍 구글 스트리트뷰 열기</a>
+      </div>
+      <p class="upload-hint">로드뷰 화면에서 마음에 드는 장면이 나오면 <b>화면 캡처(Windows: Win+Shift+S / Mac: Cmd+Shift+4)</b>를 한 뒤 아래에 업로드하세요.</p>
+      <div class="field-grid">
+        <div class="field"><label>위치 이름</label><input id="commercialName" placeholder="예: 인계동 로데오거리"></div>
+        <div class="field"><label>선택된 좌표</label><input id="commercialCoord" readonly placeholder="지도에서 위치를 먼저 선택하세요"></div>
+      </div>
+      <div class="upload-box">
+        <img id="commercialPreview" class="upload-preview" style="display:none;">
+        <div>
+          <input type="file" id="commercialImgInput" accept="image/*" onchange="handleImageUpload(event,'commercial')">
+          <p class="upload-hint">캡처한 이미지 파일을 선택해 업로드하세요.</p>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:14px;">
+        <label>세부 설명 (건물 형태, 간판, 유동인구 등)</label>
+        <textarea id="commercialDesc" placeholder="예: 3~4층 상가 건물이 밀집해 있고 음식점·옷가게 간판이 많다."></textarea>
+      </div>
+      <div class="btn-row"><button class="btn commercial-btn" onclick="addRecord('commercial')">📌 상업지역으로 기록 추가 (지도에 마커 찍기)</button></div>
+      <div class="record-list" id="recordListCommercial"></div>
+    </div>
+  </section>
+
+  <!-- STEP 4: 생각 정리 -->
+  <section class="step" id="step4">
+    <div class="step-head">
+      <div class="step-badge">4</div>
+      <div>
+        <h2>정류장 4 · 생각 정리하기</h2>
+        <p class="step-desc">완성한 노선 지도와 지역별 기록 카드를 보며 아래 두 질문에 답해보세요. 참고 키워드를 누르면 답변 칸에 자동으로 들어갑니다.</p>
+      </div>
+    </div>
+
+    <div class="question-block">
+      <p class="q-title">문항 1. 수원특례시의 도심은 어디일까? 왜 그곳이라고 생각하는가?</p>
+      <div class="keyword-row" id="kw1"></div>
+      <textarea id="q1-answer" placeholder="예: 수원역 일대가 도심이라고 생각한다. 왜냐하면 ..."></textarea>
+    </div>
+
+    <div class="question-block">
+      <p class="q-title">문항 2. 수원특례시의 주변지역은 어디일까? 왜 그곳이라고 생각하는가?</p>
+      <div class="keyword-row" id="kw2"></div>
+      <textarea id="q2-answer" placeholder="예: 광교·정자동 일대가 주변지역이라고 생각한다. 왜냐하면 ..."></textarea>
+    </div>
+  </section>
+
+  <!-- STEP 5 -->
+  <section class="step" id="step5">
+    <div class="step-head">
+      <div class="step-badge">5</div>
+      <div>
+        <h2>정류장 5 · 완성한 활동지 저장하기</h2>
+        <p class="step-desc">노선과 마커가 표시된 지도, 지역별 기록 카드, 생각 정리 답변까지 모아 결과물로 저장합니다. 이어서 계속하려면 진행 상황도 따로 저장해두세요.</p>
+      </div>
+    </div>
+
+    <div class="save-grid">
+      <div class="save-card">
+        <h3>🗺️ 지도 이미지 저장</h3>
+        <p>노선과 마커가 표시된 현재 지도를 PNG 이미지로 내려받습니다.</p>
+        <button class="btn primary" onclick="saveMapImage()">지도 PNG로 저장</button>
+      </div>
+      <div class="save-card">
+        <h3>📄 활동지 결과 저장</h3>
+        <p>지도, 노선, 기록 카드, 생각 정리 답변을 한 장의 결과 페이지로 묶어 이미지 또는 PDF로 저장합니다.</p>
+        <div class="btn-row" style="margin-bottom:0;">
+          <button class="btn accent" onclick="exportReport('image')">🖼️ 이미지로 저장(PNG)</button>
+          <button class="btn accent" onclick="exportReport('pdf')">📑 PDF로 저장</button>
+        </div>
+      </div>
+      <div class="save-card">
+        <h3>💾 진행 상황 저장 (이어하기)</h3>
+        <p>지금까지 입력한 모든 내용을 파일로 저장합니다. 다음에 이 페이지를 다시 열고 아래에서 불러오면 이어서 작업할 수 있어요.</p>
+        <button class="btn" onclick="saveProgress()">진행 상황 저장(.json)</button>
+      </div>
+      <div class="save-card">
+        <h3>📂 저장한 파일 불러오기</h3>
+        <p>이전에 저장해둔 진행 상황(.json) 파일을 불러와 이어서 작업합니다.</p>
+        <input class="file-load" type="file" accept=".json" onchange="loadProgress(event)">
+      </div>
+    </div>
+    <div class="callout"><b>제출 방법.</b> 온라인 제출은 이미지(PNG)로, 인쇄해서 제출할 때는 PDF로 저장하는 것을 추천해요. 지도가 큰 경우 저장에 몇 초 정도 걸릴 수 있습니다.</div>
+  </section>
+
+</main>
+
+<footer>버스로 그리는 우리 도시 · 도시공간구조 탐구활동 · 지도 데이터 ⓒ OpenStreetMap contributors</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+/* ---------------- Route track scroll tracking ---------------- */
+const stopEls = Array.from(document.querySelectorAll('.stop'));
+const sectionEls = ['step1','step2','step3','step4','step5'].map(id=>document.getElementById(id));
+const trackFill = document.getElementById('trackFill');
+const trackBus = document.getElementById('trackBus');
+
+function updateTrack(activeIdx){
+  stopEls.forEach((s,i)=>{
+    s.classList.toggle('active', i===activeIdx);
+    s.classList.toggle('done', i<activeIdx);
+  });
+  const pct = (activeIdx/(stopEls.length-1))*100;
+  trackFill.style.width = pct+'%';
+  trackBus.style.left = 'calc(38px + (100% - 76px) * '+(activeIdx/(stopEls.length-1))+')';
+}
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const idx = sectionEls.indexOf(e.target);
+      if(idx>-1) updateTrack(idx);
+    }
+  });
+},{ rootMargin:'-40% 0px -50% 0px' });
+sectionEls.forEach(el=>io.observe(el));
+updateTrack(0);
+
+/* ---------------- Area tabs ---------------- */
+function showAreaTab(type){
+  document.querySelectorAll('.area-tab').forEach(t=> t.classList.toggle('active', t.dataset.type===type));
+  document.querySelectorAll('.area-panel').forEach(p=> p.classList.toggle('active', p.id==='panel-'+type));
+}
+
+/* ---------------- Map setup (원래 OpenStreetMap 기본 스타일) ---------------- */
+const SUWON_CENTER = [37.2636, 127.0286];
+const map = L.map('map', { attributionControl:true }).setView(SUWON_CENTER, 13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+const routesLayer = L.layerGroup().addTo(map);
+const recordsLayer = L.layerGroup().addTo(map);
+
+const ROUTE_COLORS = ['#D9483D','#1E5F74','#E8622C','#3F9A63','#7C6F9C','#2E2E2E'];
+let currentColor = ROUTE_COLORS[0];
+const swatchWrap = document.getElementById('swatches');
+ROUTE_COLORS.forEach((c,i)=>{
+  const b = document.createElement('button');
+  b.className = 'swatch'+(i===0?' selected':'');
+  b.style.background = c;
+  b.type = 'button';
+  b.onclick = ()=>{
+    currentColor = c;
+    document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('selected'));
+    b.classList.add('selected');
+    if(tempLine) tempLine.setStyle({color:currentColor});
+  };
+  swatchWrap.appendChild(b);
+});
+
+/* ---------------- Mode handling ---------------- */
+let mode = 'draw'; // 'draw' | 'pick' | 'view'
+let currentPoints = [];
+let tempLine = null;
+let pickMarker = null;
+let selectedCoord = null;
+
+const TYPE_META = {
+  residential:{ color:'#3F9A63', label:'주거지역', emoji:'🏠' },
+  commercial:{ color:'#D9483D', label:'상업지역', emoji:'🏬' },
+  industrial:{ color:'#7C6F9C', label:'공업지역', emoji:'🏭' }
+};
+
+const mapEl = document.getElementById('map');
+const modeHint = document.getElementById('modeHint');
+const modeBtns = { draw: document.getElementById('modeDrawBtn'), pick: document.getElementById('modePickBtn'), view: document.getElementById('modeViewBtn') };
+
+function setMode(m){
+  if(m==='draw' && modeBtns.draw.disabled) return;
+  mode = m;
+  mapEl.classList.remove('mode-draw','mode-pick');
+  Object.values(modeBtns).forEach(b=>b.classList.remove('active-toggle'));
+  if(m==='draw'){
+    mapEl.classList.add('mode-draw'); modeBtns.draw.classList.add('active-toggle');
+    modeHint.innerHTML = '현재 모드: <b>✏️ 노선 그리기</b> — 지도를 클릭해서 버스가 지나는 길을 따라 점을 찍으세요.';
+  } else if(m==='pick'){
+    mapEl.classList.add('mode-pick'); modeBtns.pick.classList.add('active-toggle');
+    modeHint.innerHTML = '현재 모드: <b>📍 위치 선택(마커펜)</b> — 로드뷰로 살펴보거나 기록 카드를 남길 지점을 클릭하세요.';
+  } else {
+    modeBtns.view.classList.add('active-toggle');
+    modeHint.innerHTML = '현재 모드: <b>🖐 지도 이동</b> — 지도를 자유롭게 드래그하고 확대/축소하세요.';
+  }
+}
+setMode('draw');
+
+function goPickMode(){
+  setMode('pick');
+  mapEl.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+map.on('click', (e)=>{
+  if(mode==='draw'){
+    if(routes.length>=1) return; // 노선은 하나만
+    currentPoints.push(e.latlng);
+    if(tempLine){ tempLine.setLatLngs(currentPoints); }
+    else{
+      tempLine = L.polyline(currentPoints, { color: currentColor, weight:5, opacity:0.85, dashArray:'8,7' }).addTo(map);
+    }
+  } else if(mode==='pick'){
+    selectedCoord = { lat: e.latlng.lat, lng: e.latlng.lng };
+    if(pickMarker) map.removeLayer(pickMarker);
+    pickMarker = L.circleMarker(e.latlng, { radius:9, color:'#E8622C', weight:3, fillColor:'#fff', fillOpacity:0.95 }).addTo(map);
+    refreshCoordUI();
+  }
+});
+
+function undoPoint(){
+  if(currentPoints.length===0) return;
+  currentPoints.pop();
+  if(currentPoints.length===0){
+    if(tempLine){ map.removeLayer(tempLine); tempLine=null; }
+  } else {
+    tempLine.setLatLngs(currentPoints);
+  }
+}
+
+function finishRoute(){
+  if(routes.length>=1){
+    alert('버스 노선은 하나만 그릴 수 있어요. 다시 그리려면 먼저 "노선 지우기"로 저장된 노선을 삭제해주세요.');
+    return;
+  }
+  if(currentPoints.length<2){
+    alert('노선을 완성하려면 지도를 두 번 이상 클릭해 점을 두 개 이상 찍어주세요.');
+    return;
+  }
+  const nameInput = document.getElementById('routeNameInput');
+  const name = nameInput.value.trim() || '나의 버스 노선';
+  const layer = L.polyline(currentPoints, { color: currentColor, weight:5, opacity:0.9 }).addTo(routesLayer);
+  layer.bindPopup('<b>'+escapeHtml(name)+'</b><br>지점 '+currentPoints.length+'개');
+  routes.push({ id: Date.now(), name, color: currentColor, points: currentPoints.map(p=>({lat:p.lat,lng:p.lng})), layer });
+  if(tempLine){ map.removeLayer(tempLine); tempLine=null; }
+  currentPoints = [];
+  nameInput.value = '';
+  renderRoutes();
+  updateDrawAvailability();
+}
+
+function clearAllRoutes(){
+  if(routes.length===0 && currentPoints.length===0) return;
+  if(!confirm('그려둔 노선을 지울까요? 되돌릴 수 없습니다.')) return;
+  routesLayer.clearLayers();
+  routes = [];
+  if(tempLine){ map.removeLayer(tempLine); tempLine=null; }
+  currentPoints = [];
+  renderRoutes();
+  updateDrawAvailability();
+}
+
+function updateDrawAvailability(){
+  const full = routes.length>=1;
+  modeBtns.draw.disabled = full;
+  document.getElementById('routeNameInput').disabled = full;
+  if(full && mode==='draw') setMode('pick');
+}
+
+let routes = [];
+function renderRoutes(){
+  const wrap = document.getElementById('routeList');
+  wrap.innerHTML = '';
+  if(routes.length===0){
+    wrap.innerHTML = '<p class="empty-note">아직 저장된 노선이 없습니다. 지도를 클릭해 노선을 그리고 "이 노선 저장"을 눌러보세요.</p>';
+    return;
+  }
+  routes.forEach(r=>{
+    const chip = document.createElement('div');
+    chip.className = 'route-chip';
+    chip.innerHTML = '<span class="dot" style="background:'+r.color+'"></span>'+
+      '<span class="info"><b>'+escapeHtml(r.name)+'</b><span>지점 '+r.points.length+'개</span></span>'+
+      '<button class="btn small ghost" data-id="'+r.id+'">삭제</button>';
+    chip.querySelector('button').onclick = ()=> deleteRoute(r.id);
+    wrap.appendChild(chip);
+  });
+}
+function deleteRoute(id){
+  const r = routes.find(x=>x.id===id);
+  if(!r) return;
+  routesLayer.removeLayer(r.layer);
+  routes = routes.filter(x=>x.id!==id);
+  renderRoutes();
+  updateDrawAvailability();
+}
+renderRoutes();
+updateDrawAvailability();
+
+/* ---------------- coordinate + roadview links (공유 상태, 세 탭에서 함께 사용) ---------------- */
+function refreshCoordUI(){
+  const boxes = document.querySelectorAll('.coordBox');
+  const kakaoBtns = document.querySelectorAll('.kakaoRoadviewBtn');
+  const googleBtns = document.querySelectorAll('.googleStreetBtn');
+  ['commercialCoord','residentialCoord','industrialCoord'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = selectedCoord ? (selectedCoord.lat.toFixed(5)+', '+selectedCoord.lng.toFixed(5)) : '';
+  });
+
+  if(!selectedCoord){
+    boxes.forEach(box=>{
+      box.classList.add('empty');
+      box.innerHTML = '<span>📍 선택된 위치 없음 — 위 버튼을 눌러 지도에서 지점을 클릭하세요</span>';
+    });
+    return;
+  }
+  const lat = selectedCoord.lat.toFixed(5), lng = selectedCoord.lng.toFixed(5);
+  boxes.forEach(box=>{
+    box.classList.remove('empty');
+    box.innerHTML = '<span>📍 선택된 위치</span><span class="coord-value">'+lat+', '+lng+'</span><span style="color:var(--ink-soft);">아래 버튼으로 로드뷰를 열거나, 기록을 추가하세요.</span>';
+  });
+  kakaoBtns.forEach(a=> a.href = 'https://map.kakao.com/link/roadview/'+lat+','+lng);
+  googleBtns.forEach(a=> a.href = 'https://www.google.com/maps?layer=c&cbll='+lat+','+lng);
+}
+function checkCoord(a){
+  if(!selectedCoord){
+    alert('먼저 "지도에서 위치 선택하기" 버튼을 누르고 지도의 지점을 클릭해주세요.');
+    return false;
+  }
+  return true;
+}
+refreshCoordUI();
+
+/* ---------------- 현장 기록 (상업/주거/공업 공용 로직) ---------------- */
+let records = [];
+const pendingImages = { commercial:null, residential:null, industrial:null };
+
+function handleImageUpload(evt, suffix){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    pendingImages[suffix] = e.target.result;
+    const img = document.getElementById(suffix+'Preview');
+    img.src = pendingImages[suffix];
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function addRecord(type){
+  const suffix = type;
+  const name = document.getElementById(suffix+'Name').value.trim();
+  const desc = document.getElementById(suffix+'Desc').value.trim();
+  if(!selectedCoord){
+    alert('먼저 "지도에서 위치 선택하기" 버튼을 누르고 지도의 지점을 클릭해 좌표를 지정해주세요.');
+    return;
+  }
+  if(!name){
+    alert('위치 이름을 입력해주세요.');
+    return;
+  }
+  const meta = TYPE_META[type];
+  const marker = L.circleMarker([selectedCoord.lat, selectedCoord.lng], {
+    radius:9, color:'#fff', weight:2, fillColor: meta.color, fillOpacity:0.95
+  }).addTo(recordsLayer);
+  marker.bindPopup('<b>'+meta.emoji+' '+escapeHtml(name)+'</b><br>'+meta.label+(desc?('<br>'+escapeHtml(desc.slice(0,60))+(desc.length>60?'…':'')):''));
+
+  records.push({
+    id: Date.now(), type, name, desc,
+    lat: selectedCoord.lat, lng: selectedCoord.lng,
+    image: pendingImages[suffix], marker
+  });
+  renderAllRecordLists();
+
+  document.getElementById(suffix+'Name').value = '';
+  document.getElementById(suffix+'Desc').value = '';
+  document.getElementById(suffix+'ImgInput').value = '';
+  document.getElementById(suffix+'Preview').style.display = 'none';
+  pendingImages[suffix] = null;
+
+  if(pickMarker){ map.removeLayer(pickMarker); pickMarker=null; }
+  selectedCoord = null;
+  refreshCoordUI();
+}
+
+function renderRecordList(type, containerId){
+  const wrap = document.getElementById(containerId);
+  const list = records.filter(r=>r.type===type);
+  wrap.innerHTML = '';
+  if(list.length===0){
+    wrap.innerHTML = '<p class="empty-note">아직 추가된 기록 카드가 없습니다.</p>';
+    return;
+  }
+  list.forEach(r=>{
+    const meta = TYPE_META[r.type];
+    const card = document.createElement('div');
+    card.className = 'record-card';
+    const imgHtml = r.image ? '<img src="'+r.image+'">' : '<div class="noimg">이미지 없음</div>';
+    card.innerHTML = imgHtml +
+      '<div class="body">'+
+        '<span class="type-pill '+r.type+'">'+meta.emoji+' '+meta.label+'</span>'+
+        '<p class="name">'+escapeHtml(r.name)+'</p>'+
+        (r.desc ? '<p class="desc">'+escapeHtml(r.desc)+'</p>' : '') +
+        '<p class="coord">'+r.lat.toFixed(5)+', '+r.lng.toFixed(5)+'</p>'+
+        '<div class="actions"><button class="btn small ghost" data-id="'+r.id+'">삭제</button></div>'+
+      '</div>';
+    card.querySelector('button').onclick = ()=> deleteRecord(r.id);
+    wrap.appendChild(card);
+  });
+}
+function renderAllRecordLists(){
+  renderRecordList('commercial','recordListCommercial');
+  renderRecordList('residential','recordListResidential');
+  renderRecordList('industrial','recordListIndustrial');
+}
+function deleteRecord(id){
+  const r = records.find(x=>x.id===id);
+  if(!r) return;
+  recordsLayer.removeLayer(r.marker);
+  records = records.filter(x=>x.id!==id);
+  renderAllRecordLists();
+}
+renderAllRecordLists();
+
+/* ---------------- 생각 정리 키워드 ---------------- */
+const KW1 = ['접근성','지가(땅값)','상업·업무 기능 집중','고층 건물','관공서·행정타운','교통의 결절점(환승)','유동인구','은행·백화점','주간인구 > 상주인구'];
+const KW2 = ['상대적으로 낮은 지가','대규모 주택지·아파트 단지','공업단지·물류창고','개발제한구역·녹지','통근 인구 유출','신도시 개발','접근성이 낮음','저밀도 개발','도시 외곽'];
+function renderKeywords(containerId, words, textareaId){
+  const wrap = document.getElementById(containerId);
+  words.forEach(w=>{
+    const chip = document.createElement('button');
+    chip.type = 'button'; chip.className = 'keyword-chip'; chip.textContent = w;
+    chip.onclick = ()=> insertKeyword(textareaId, w);
+    wrap.appendChild(chip);
+  });
+}
+function insertKeyword(id, word){
+  const ta = document.getElementById(id);
+  ta.value = ta.value.trim() ? (ta.value.trim()+', '+word) : word;
+  ta.focus();
+}
+renderKeywords('kw1', KW1, 'q1-answer');
+renderKeywords('kw2', KW2, 'q2-answer');
+
+/* ---------------- helpers ---------------- */
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, function(m){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+  });
+}
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* 노선/마커를 실제 좌표 기준으로 캔버스에 그려주는 함수 (지도 배경 위에 겹쳐 그림) */
+function drawOverlay(ctx, scaleX, scaleY){
+  routes.forEach(r=>{
+    ctx.strokeStyle = r.color; ctx.lineWidth = 5*scaleX; ctx.lineJoin='round'; ctx.lineCap='round';
+    ctx.beginPath();
+    r.points.forEach((p,i)=>{
+      const pt = map.latLngToContainerPoint(L.latLng(p.lat,p.lng));
+      const x = pt.x*scaleX, y = pt.y*scaleY;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+  });
+  records.forEach(rec=>{
+    const meta = TYPE_META[rec.type];
+    const pt = map.latLngToContainerPoint(L.latLng(rec.lat,rec.lng));
+    const x = pt.x*scaleX, y = pt.y*scaleY;
+    ctx.beginPath();
+    ctx.arc(x,y, 9*scaleX, 0, Math.PI*2);
+    ctx.fillStyle = meta.color;
+    ctx.fill();
+    ctx.lineWidth = 2*scaleX;
+    ctx.strokeStyle = '#ffffff';
+    ctx.stroke();
+  });
+}
+
+/* 배경 지도를 못 읽어오는 경우(브라우저 보안 정책)를 대비한 대체 캔버스 —
+   이 경우에도 노선·마커 위치는 항상 정확하게 표시됩니다. */
+function makeFallbackCanvas(){
+  const w = mapEl.clientWidth, h = mapEl.clientHeight;
+  const scale = window.devicePixelRatio || 1;
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(w*scale); canvas.height = Math.round(h*scale);
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#EAF1EC'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle = '#D7E3DC'; ctx.lineWidth = 1;
+  for(let x=0;x<canvas.width;x+=40*scale){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
+  for(let y=0;y<canvas.height;y+=40*scale){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+  ctx.fillStyle = '#8A8377'; ctx.font = (13*scale)+'px sans-serif';
+  ctx.fillText('지도 배경은 표시되지 않았지만 노선·마커 위치는 정확합니다', 12*scale, 22*scale);
+  drawOverlay(ctx, scale, scale);
+  return canvas;
+}
+
+function captureMapCanvas(callback){
+  html2canvas(mapEl, { useCORS:true, allowTaint:false }).then(baseCanvas=>{
+    const scaleX = baseCanvas.width / mapEl.clientWidth, scaleY = baseCanvas.height / mapEl.clientHeight;
+    const ctx = baseCanvas.getContext('2d');
+    drawOverlay(ctx, scaleX, scaleY);
+    try{
+      baseCanvas.toDataURL('image/png'); // 캔버스가 오염되었는지 확인
+      callback(baseCanvas);
+    }catch(err){
+      callback(makeFallbackCanvas());
+    }
+  }).catch(()=> callback(makeFallbackCanvas()));
+}
+
+/* ---------------- 저장 ---------------- */
+function saveMapImage(){
+  captureMapCanvas(canvas=>{
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = '수원버스노선지도.png';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  });
+}
+
+function getStudentInfo(){
+  return {
+    school: document.getElementById('s-school').value.trim(),
+    name: document.getElementById('s-name').value.trim(),
+    date: document.getElementById('s-date').value,
+    busNumber: document.getElementById('bus-number').value.trim(),
+    busRange: document.getElementById('bus-range').value.trim(),
+    busReason: document.getElementById('bus-reason').value.trim()
+  };
+}
+function getReflection(){
+  return {
+    q1: document.getElementById('q1-answer').value.trim(),
+    q2: document.getElementById('q2-answer').value.trim()
+  };
+}
+
+function buildReportHtml(mapImg, s, r){
+  const parts = [];
+  parts.push('<div class="report-wrap">');
+  parts.push('<style>');
+  parts.push('.report-wrap{font-family:"Noto Sans KR",sans-serif;width:820px;padding:30px;color:#1F2A24;line-height:1.6;background:#fff;}');
+  parts.push('.report-wrap h1{font-size:26px;border-bottom:4px solid #1E5F74;padding-bottom:10px;margin:0 0 16px;}');
+  parts.push('.report-wrap h2{font-size:18px;color:#1E5F74;margin-top:32px;}');
+  parts.push('.report-wrap .meta{display:flex;flex-wrap:wrap;gap:16px;background:#F6F5F1;padding:12px 16px;border-radius:8px;font-size:14px;}');
+  parts.push('.report-wrap .meta div{min-width:140px;}');
+  parts.push('.report-wrap .meta b{display:block;font-size:12px;color:#5B665F;}');
+  parts.push('.report-wrap img.mapshot{width:100%;border-radius:8px;border:1px solid #DDD8C9;margin-top:10px;}');
+  parts.push('.report-wrap .route-row{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:14px;}');
+  parts.push('.report-wrap .dot{width:14px;height:14px;border-radius:50%;flex:none;}');
+  parts.push('.report-wrap .card{display:flex;gap:14px;border:1px solid #DDD8C9;border-radius:8px;padding:14px;margin-bottom:12px;background:#FBFAF6;}');
+  parts.push('.report-wrap .card img{width:150px;height:110px;object-fit:cover;border-radius:6px;flex:none;}');
+  parts.push('.report-wrap .pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;margin-bottom:6px;}');
+  parts.push('.report-wrap .pill.residential{background:#EAF6EE;color:#276B44;} .report-wrap .pill.commercial{background:#FBEAE8;color:#A02E25;} .report-wrap .pill.industrial{background:#EEEBF5;color:#544A73;}');
+  parts.push('.report-wrap .coord{font-family:monospace;font-size:11.5px;color:#8A8377;}');
+  parts.push('.report-wrap .qbox{border:1px solid #DDD8C9;border-radius:8px;padding:14px 16px;margin-bottom:14px;background:#FBFAF6;}');
+  parts.push('.report-wrap .qbox p.qt{font-weight:700;margin:0 0 8px;}');
+  parts.push('</style>');
+  parts.push('<h1>🚌 버스로 그리는 우리 도시 — 결과 활동지</h1>');
+  parts.push('<div class="meta">');
+  parts.push('<div><b>학교/학년</b>'+escapeHtml(s.school||'-')+'</div>');
+  parts.push('<div><b>이름</b>'+escapeHtml(s.name||'-')+'</div>');
+  parts.push('<div><b>날짜</b>'+escapeHtml(s.date||'-')+'</div>');
+  parts.push('</div>');
+
+  parts.push('<h2>1. 조사한 버스 노선</h2>');
+  parts.push('<div class="meta"><div><b>노선 번호</b>'+escapeHtml(s.busNumber||'-')+'</div>');
+  parts.push('<div><b>운행 구간</b>'+escapeHtml(s.busRange||'-')+'</div></div>');
+  if(s.busReason) parts.push('<p>'+escapeHtml(s.busReason)+'</p>');
+
+  parts.push('<h2>2. 노선 지도 &amp; 지역 마커</h2>');
+  parts.push('<img class="mapshot" src="'+mapImg+'">');
+  if(routes.length){
+    routes.forEach(rt=>{
+      parts.push('<div class="route-row"><span class="dot" style="background:'+rt.color+'"></span>'+escapeHtml(rt.name)+' <span class="coord">('+rt.points.length+'개 지점)</span></div>');
+    });
+  } else {
+    parts.push('<p><i>저장된 노선이 없습니다.</i></p>');
+  }
+
+  ['industrial','residential','commercial'].forEach(type=>{
+    const meta = TYPE_META[type];
+    const list = records.filter(rc=>rc.type===type);
+    parts.push('<h2>'+meta.emoji+' '+meta.label+' 기록</h2>');
+    if(list.length===0){
+      parts.push('<p><i>추가된 기록 카드가 없습니다.</i></p>');
+      return;
+    }
+    list.forEach(rc=>{
+      parts.push('<div class="card">');
+      parts.push(rc.image ? '<img src="'+rc.image+'">' : '');
+      parts.push('<div><span class="pill '+rc.type+'">'+meta.emoji+' '+meta.label+'</span>');
+      parts.push('<p style="font-weight:700;margin:4px 0;">'+escapeHtml(rc.name)+'</p>');
+      if(rc.desc) parts.push('<p style="margin:4px 0;">'+escapeHtml(rc.desc)+'</p>');
+      parts.push('<p class="coord">'+rc.lat.toFixed(5)+', '+rc.lng.toFixed(5)+'</p></div>');
+      parts.push('</div>');
+    });
+  });
+
+  parts.push('<h2>3. 생각 정리</h2>');
+  parts.push('<div class="qbox"><p class="qt">문항 1. 수원특례시의 도심은 어디일까? 왜 그곳이라고 생각하는가?</p><p>'+(r.q1?escapeHtml(r.q1):'<i>답변 없음</i>')+'</p></div>');
+  parts.push('<div class="qbox"><p class="qt">문항 2. 수원특례시의 주변지역은 어디일까? 왜 그곳이라고 생각하는가?</p><p>'+(r.q2?escapeHtml(r.q2):'<i>답변 없음</i>')+'</p></div>');
+  parts.push('</div>');
+  return parts.join('');
+}
+
+function exportReport(kind){
+  captureMapCanvas(mapCanvas=>{
+    const mapImg = mapCanvas.toDataURL('image/png');
+    const s = getStudentInfo();
+    const r = getReflection();
+
+    const holder = document.createElement('div');
+    holder.style.cssText = 'position:fixed; left:-9999px; top:0; z-index:-1;';
+    holder.innerHTML = buildReportHtml(mapImg, s, r);
+    document.body.appendChild(holder);
+
+    html2canvas(holder.firstElementChild, { useCORS:true, backgroundColor:'#ffffff', scale:2 }).then(canvas=>{
+      document.body.removeChild(holder);
+      if(kind==='image'){
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = '버스로그리는우리도시_결과활동지.png';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      } else {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ unit:'px', format:[canvas.width, canvas.height] });
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save('버스로그리는우리도시_결과활동지.pdf');
+      }
+    }).catch(()=>{
+      if(document.body.contains(holder)) document.body.removeChild(holder);
+      alert('결과 활동지를 만드는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    });
+  });
+}
+
+function saveProgress(){
+  const state = {
+    student: getStudentInfo(),
+    reflection: getReflection(),
+    routes: routes.map(r=>({ id:r.id, name:r.name, color:r.color, points:r.points })),
+    records: records.map(r=>({ id:r.id, type:r.type, name:r.name, desc:r.desc, lat:r.lat, lng:r.lng, image:r.image }))
+  };
+  downloadBlob(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}), '버스여행활동_진행상황.json');
+}
+
+function loadProgress(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    let state;
+    try{ state = JSON.parse(e.target.result); }
+    catch(err){ alert('올바른 진행 상황 파일이 아닙니다.'); return; }
+
+    if(state.student){
+      document.getElementById('s-school').value = state.student.school||'';
+      document.getElementById('s-name').value = state.student.name||'';
+      document.getElementById('s-date').value = state.student.date||'';
+      document.getElementById('bus-number').value = state.student.busNumber||'';
+      document.getElementById('bus-range').value = state.student.busRange||'';
+      document.getElementById('bus-reason').value = state.student.busReason||'';
+    }
+    if(state.reflection){
+      document.getElementById('q1-answer').value = state.reflection.q1||'';
+      document.getElementById('q2-answer').value = state.reflection.q2||'';
+    }
+
+    routesLayer.clearLayers();
+    routes = [];
+    (state.routes||[]).slice(0,1).forEach(r=>{
+      const latlngs = r.points.map(p=>L.latLng(p.lat,p.lng));
+      const layer = L.polyline(latlngs, { color:r.color, weight:5, opacity:0.9 }).addTo(routesLayer);
+      layer.bindPopup('<b>'+escapeHtml(r.name)+'</b><br>지점 '+latlngs.length+'개');
+      routes.push({ id:r.id, name:r.name, color:r.color, points:r.points, layer });
+    });
+    renderRoutes();
+    updateDrawAvailability();
+
+    recordsLayer.clearLayers();
+    records = [];
+    (state.records||[]).forEach(r=>{
+      const meta = TYPE_META[r.type];
+      const marker = L.circleMarker([r.lat,r.lng], { radius:9, color:'#fff', weight:2, fillColor:meta.color, fillOpacity:0.95 }).addTo(recordsLayer);
+      marker.bindPopup('<b>'+meta.emoji+' '+escapeHtml(r.name)+'</b><br>'+meta.label);
+      records.push({ id:r.id, type:r.type, name:r.name, desc:r.desc, lat:r.lat, lng:r.lng, image:r.image, marker });
+    });
+    renderAllRecordLists();
+
+    if(routes.length){
+      const allPts = routes.flatMap(r=>r.points.map(p=>[p.lat,p.lng]));
+      if(allPts.length) map.fitBounds(allPts, { padding:[30,30] });
+    }
+    alert('진행 상황을 불러왔습니다.');
+  };
+  reader.readAsText(file);
+}
+</script>
+</body>
+</html>
