@@ -1182,7 +1182,17 @@ function reportOnClone(clonedDoc){
   style.textContent = `
     #reportCapture { background:#ece0c2 !important; }
     #reportCapture, #reportCapture *{ color:#2b2015; }
-    #reportCapture .page{ background:#f2e8cf !important; box-shadow:none !important; }
+    #reportCapture *{
+      animation:none !important;
+      transition:none !important;
+      opacity:1 !important;
+      transform:none !important;
+      text-shadow:none !important;
+      filter:none !important;
+      box-shadow:none !important;
+    }
+    #reportCapture .page{ background:#f2e8cf !important; }
+    #reportCapture .page::before{ background:#c9a227 !important; }
     #reportCapture .eyebrow{ color:#8b5e34 !important; }
     #reportCapture .bp-card{ background:#f7f0dc !important; border-color:#8b5e34 !important; }
     #reportCapture .bp-card .c{ color:#5a4a34 !important; }
@@ -1196,6 +1206,7 @@ function reportOnClone(clonedDoc){
     #reportCapture .certificate .stamp{ color:#8b5e34 !important; }
     #reportCapture .certificate .why{ color:#5a4a34 !important; }
     #reportCapture .rank-badge{ background:#c9a227 !important; color:#241a08 !important; }
+    #reportCapture img{ image-rendering:auto !important; }
   `;
   clonedDoc.head.appendChild(style);
 }
@@ -1211,9 +1222,12 @@ async function generateReportCanvas(){
   try{
     return await html2canvas(target, {
       backgroundColor: '#ece0c2',
-      scale: 2,
+      scale: Math.max(3, window.devicePixelRatio || 1),
       useCORS: true,
       allowTaint: true,
+      imageTimeout: 15000,
+      letterRendering: true,
+      removeContainer: true,
       onclone: reportOnClone
     });
   }catch(err){
