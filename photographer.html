@@ -21,7 +21,7 @@
 
   body{
     margin:0;
-    background:#d9d3c6;
+    background:var(--paper);
     font-family:'Noto Sans KR', sans-serif;
     color:var(--ink);
     display:flex;
@@ -663,9 +663,21 @@
     submitWrap.style.display = 'none';
 
     const sheet = document.querySelector('.sheet');
+    const SCALE = 2;
+
+    // 페이지 경계에서 항목이 잘리지 않도록, 보호할 요소들의 세로 범위를 미리 계산
+    const avoidSelectors = 'section.block, .artwork-card, header.title-block, .session-tag, .field-row, .keyword-slot, .artist-table tr, .lines-textarea';
+    const sheetRect = sheet.getBoundingClientRect();
+    const avoidRanges = Array.from(sheet.querySelectorAll(avoidSelectors)).map(el => {
+      const r = el.getBoundingClientRect();
+      return {
+        top: (r.top - sheetRect.top) * SCALE,
+        bottom: (r.bottom - sheetRect.top) * SCALE
+      };
+    });
 
     setTimeout(() => {
-      html2canvas(sheet, { scale: 2, useCORS: true, backgroundColor: '#f5f2ec' }).then(canvas => {
+      html2canvas(sheet, { scale: SCALE, useCORS: true, backgroundColor: '#f5f2ec' }).then(canvas => {
         submitWrap.style.display = '';
         btnText.textContent = originalText;
         btn.style.pointerEvents = 'auto';
@@ -673,24 +685,50 @@
 
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'pt', 'a4');
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        const imgWidth = pageWidth;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const pageWidthPt = pdf.internal.pageSize.getWidth();
+        const pageHeightPt = pdf.internal.pageSize.getHeight();
+        const pxToPt = pageWidthPt / canvas.width;
+        const pageHeightPx = pageHeightPt / pxToPt;
 
-        let heightLeft = imgHeight;
-        let position = 0;
-
-        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-
-        while (heightLeft > 0) {
-          position -= pageHeight;
-          pdf.addPage();
-          pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-          heightLeft -= pageHeight;
+        // 페이지가 항목 중간을 자르지 않도록, 경계를 항목 시작점 앞으로 당겨서 조정
+        const breaks = [];
+        let cursor = 0;
+        const total = canvas.height;
+        while (cursor < total) {
+          let boundary = Math.min(cursor + pageHeightPx, total);
+          if (boundary < total) {
+            for (const range of avoidRanges) {
+              if (boundary > range.top && boundary < range.bottom) {
+                if (range.top - cursor > pageHeightPx * 0.25) {
+                  boundary = range.top;
+                }
+                break;
+              }
+            }
+          }
+          breaks.push(boundary);
+          cursor = boundary;
         }
+
+        breaks.forEach((breakPoint, i) => {
+          const sliceTop = i === 0 ? 0 : breaks[i - 1];
+          const sliceHeight = breakPoint - sliceTop;
+          if (sliceHeight <= 0) return;
+
+          const pageCanvas = document.createElement('canvas');
+          pageCanvas.width = canvas.width;
+          pageCanvas.height = sliceHeight;
+          const ctx = pageCanvas.getContext('2d');
+          ctx.fillStyle = '#f5f2ec';
+          ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+          ctx.drawImage(canvas, 0, sliceTop, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
+
+          const imgData = pageCanvas.toDataURL('image/jpeg', 0.95);
+          if (i > 0) pdf.addPage();
+          pdf.setFillColor(245, 242, 236);
+          pdf.rect(0, 0, pageWidthPt, pageHeightPt, 'F');
+          pdf.addImage(imgData, 'JPEG', 0, 0, pageWidthPt, sliceHeight * pxToPt);
+        });
 
         pdf.save('사진작가_포트폴리오.pdf');
       }).catch(() => {
