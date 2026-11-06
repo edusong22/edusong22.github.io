@@ -715,8 +715,8 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balanc
   function ptsOf(k){return 200}
   function choPts(q){return BONUS[q.ans]?800:400}
   function sum(o,m){var n=0;for(var k in o) n+=o[k]*(m||1);return n}
-  function money(){ var p=PAY0+sum(gain)+sum(gotc)-100*sum(wrongN)-10*sum(hintC); return {pay:Math.max(1000,p), rent:RENT[maxDone()]}; }
-  function ledger(n){ var g=0,w=0,h=0,c=0,pre=n+'-',k; for(k in gain) if(k.indexOf(pre)===0) g+=gain[k]; for(k in gotc) if(k.indexOf(pre)===0) c+=gotc[k]; for(k in wrongN) if(k.indexOf(pre)===0) w+=wrongN[k]*100; for(k in hintC) if(k.indexOf(pre)===0) h+=hintC[k]*10; return {g:g+c,w:w,h:h}; }
+  function money(){ var p=PAY0+sum(gain)+sum(gotc)-50*sum(wrongN)-10*sum(hintC); return {pay:Math.max(1000,p), rent:RENT[maxDone()]}; }
+  function ledger(n){ var g=0,w=0,h=0,c=0,pre=n+'-',k; for(k in gain) if(k.indexOf(pre)===0) g+=gain[k]; for(k in gotc) if(k.indexOf(pre)===0) c+=gotc[k]; for(k in wrongN) if(k.indexOf(pre)===0) w+=wrongN[k]*50; for(k in hintC) if(k.indexOf(pre)===0) h+=hintC[k]*10; return {g:g+c,w:w,h:h}; }
   function sgn(n){return (n>0?'+$':'−$')+fmt(Math.abs(n))}
   var myName='',step=0,qi=0,wrong=[],qdone=false,sceneDone=false,clipIdx=0,clipDone=false,playing=false,tab='clip',score=0,timer=null,snd=false,hintN=0;
   var scene=function(){return SC[step-1]};
@@ -896,7 +896,7 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balanc
     if(step===0){
       h+='<span class="tag plain">오늘의 활동 · 짝 활동</span><h2>신입 사원의 월급과 월세는 어떻게 변할까요?</h2>'
         +'<p class="story-text">짝과 함께 신입 사원이 되어 실리콘 밸리에서 6가지 일을 겪어요. 영상 속 인물의 이야기를 듣고 문제를 풀면 월급이 올라요. 그런데 도시가 커지면 월세는 어떻게 될까요? 끝까지 가서 확인해 봐요!</p>'
-        +'<div class="sum"><div class="fb yes"><strong>짝 규칙</strong>짝과 이야기해서 답을 정하고 함께 눌러요. 끝나면 소감을 쓰고 선생님께 제출해요.</div><div class="fb no"><strong>월급·월세 게임</strong>한 번에 맞히면 월급이 올라요(객관식 +$200). 초성 퀴즈는 직접 맞히면 +$400, ★ 보너스 문제는 +$800이에요. 객관식을 틀리면 −$100, 힌트는 1개당 −$10이에요. 그런데 월세는 계속 올라요!</div></div>'
+        +'<div class="sum"><div class="fb yes"><strong>짝 규칙</strong>짝과 이야기해서 답을 정하고 함께 눌러요. 끝나면 소감을 쓰고 선생님께 제출해요.</div><div class="fb no"><strong>월급·월세 게임</strong>한 번에 맞히면 월급이 올라요(객관식 +$200). 초성 퀴즈는 직접 맞히면 +$400, ★ 보너스 문제는 +$800이에요. 객관식을 틀리면 −$50, 힌트는 1개당 −$10이에요. 그런데 월세는 계속 올라요!</div></div>'
         +'<div class="nm"><label for="nm">신입 사원 이름을 짝과 함께 지어 주세요</label><input id="nm" type="text" maxlength="8" autocomplete="off" placeholder="예: 지우" value="'+(myName||'')+'"></div><button class="btn" id="start">출근하기 →</button><p class="hint">비워 두면 ‘신입 사원’으로 불러요 · 제출한 소감과 점수만 선생님이 볼 수 있어요</p>'+(TEACH?'<button class="btn2" id="topen">교사용: 제출 현황 보기</button>':'');
     } else if(step>=END){
       var rank=score>=Math.round(TOTALQ*.8)?'클러스터 박사':(score>=Math.round(TOTALQ*.5)?'클러스터 사원':'다시 출근해 볼까요?');
@@ -934,7 +934,7 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balanc
             h+='<button class="'+cls+'" data-i="'+i+'"'+dis+'><span class="key">'+(i+1)+'</span><span>'+c.t+'</span></button>';});
           h+='</div>';
           if(qdone){ var gk=step+'-'+qi; h+='<div class="fb yes"><strong>정답이에요! '+(wrong.length===0&&gain[gk]?'한 번에 맞혀서 월급 +$'+gain[gk]:'틀린 적이 있어서 보너스는 없어요')+'</strong>'+q.ex+'</div>'; }
-          else if(wrong.length) h+='<div class="fb no"><strong>아쉬워요. 월급 −$100! 다시 골라 볼까요?</strong>'+q.c[wrong[wrong.length-1]].why+'</div>';
+          else if(wrong.length) h+='<div class="fb no"><strong>아쉬워요. 월급 −$50! 다시 골라 볼까요?</strong>'+q.c[wrong[wrong.length-1]].why+'</div>';
         }
         if(qdone&&qi>=sc.qs.length-1) h+=moneyCard();
         if(qdone){
