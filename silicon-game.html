@@ -125,7 +125,7 @@ textarea.tin{resize:vertical}
 #left.qm .sub{min-height:0;padding:.4rem .8rem}
 #left.qm .sub small{display:none}
 @media (min-width:901px){#left{display:flex;flex-direction:column;height:calc(100dvh - 5.2rem);min-height:0}.vp{aspect-ratio:16/10!important;flex:0 1 auto;min-height:9rem;height:auto!important;width:100%;background:#0F1E24}.vp>svg,.vp>.photos{position:absolute;inset:0;width:100%;height:100%}#left>*{flex:none}#left>.vp{flex:0 1 auto}}
-@media (max-width:900px){#left.qm .story{display:none}.vp{aspect-ratio:16/10!important;height:auto!important;margin-inline:auto;width:min(100%,calc(max(9rem,calc(100dvh - 44rem))*1.6))!important}#left.qm .vp{width:min(100%,calc(max(9rem,calc(100dvh - 60rem))*1.6))!important}}
+@media (max-width:900px){#left.qm .story{display:none}.vp{aspect-ratio:16/10!important;height:auto!important;margin-inline:auto;width:100%!important}#left.qm .vp{width:100%!important}}
 
 @media (max-width:1100px){.story p{font-size:.9rem;line-height:1.42}.story .st{font-size:1.15rem}.sub{padding:.5rem .8rem;min-height:0}.sub p{font-size:1rem}}
 @media (min-width:901px) and (max-width:1100px){.top{flex-wrap:nowrap;gap:.4rem .8rem}.brand{font-size:1.15rem;white-space:nowrap}.pips{min-width:6rem}.who span{display:none}.hud .m{padding:.15rem .5rem;font-size:.85rem}.hud .m b{font-size:.95rem}.hud{flex-wrap:nowrap}}
@@ -272,6 +272,7 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balanc
 .hud .m b{font-size:.95rem}
 .playbig svg{width:4rem;height:4rem}
 .playbig span{font-size:1.05rem}
+@media (max-width:900px){.vtag{top:auto;bottom:.5rem;right:.5rem;font-size:.7rem}}
 </style>
 </head><body>
 <header class="top">
@@ -546,7 +547,7 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balanc
     qs:[{q:'영상 속 실리콘 밸리의 특징으로 가장 알맞은 것은?',
       c:[{t:'석유 화학 공장이 넓게 모인 공업 지역',why:'영상에는 굴뚝 있는 공장이 거의 없었어요.'},
          {t:'첨단 산업 관련 기업·대학·연구소가 좁은 지역에 모인 곳',ok:1},
-         {t:'농산물을 모아 파는 시장 중심 도시',why:'영상 속 건물은 대학, 연구소, IT 기업이었어요.'},
+         {t:'대학과 학생이 많이 모여 사는 교육 도시',why:'대학은 있지만, 기업과 연구소가 함께 모여 있다는 점이 핵심이에요.'},
          {t:'관광객이 많이 찾는 항구 도시',why:'항구나 관광지 이야기는 나오지 않았어요.'}],
       ex:'맞아요. 비슷한 일을 하는 기관들이 좁은 지역에 모여 있어요. 이런 지역을 무엇이라고 할까요?'},
      {cho:'ㅋㄹㅅㅌ',ans:'클러스터',q:'연관이 있는 산업의 기업, 연구 시설, 각종 지원 기관 등이 모여 네트워크를 형성하는 지역은?',
@@ -564,7 +565,7 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balanc
       c:[{t:'원료를 운반하는 비용이 크게 줄어든다',why:'이 사례는 물건 운반이 아니라 정보 이야기예요.'},
          {t:'가까이 모여 있어 정보와 기술을 빠르게 주고받을 수 있다',ok:1},
          {t:'땅값이 낮아 사무실 임대료가 싸다',why:'실리콘 밸리는 오히려 땅값이 비싸요.'},
-         {t:'정부가 연구비를 대신 내 준다',why:'영상에서 정부 지원은 나오지 않았어요.'}],
+         {t:'같은 분야 기업이 모여 있어 서로 경쟁하지 않아도 된다',why:'가까이 모이면 경쟁은 오히려 더 생겨요. 이익은 정보와 기술을 나누는 데서 나와요.'}],
       ex:'맞아요. 같은 지역에 모인 기업들이 함께 얻는 이런 이익에는 이름이 있어요.'},
      {cho:'ㅈㅈ ㅇㅇ',ans:'집적 이익',q:'관련 산업이 한 장소에 서로 모여 얻게 되는 경제적 이익은?',
       hints:['예) 원료와 제품의 공동 구매, 노동력 확보, 기술과 정보 교환','앞 낱말은 ‘한곳에 모여 쌓인다’는 뜻이에요.'],
@@ -583,7 +584,7 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balanc
     qs:[{q:'투자 회사가 스타트업 가까이에 모여 있는 이유로 가장 알맞은 것은?',
       c:[{t:'해외 투자가 법으로 금지되어 있어서',why:'영상에서 그런 이야기는 없었어요.'},
          {t:'위험이 큰 신생 기업을 가까이서 자주 확인하고 지원하기 쉬워서',ok:1},
-         {t:'공장을 지을 넓은 부지가 필요해서',why:'투자 회사는 공장이 필요하지 않아요.'},
+         {t:'투자 회사가 스타트업의 제품을 대신 만들어 팔기 위해서',why:'투자 회사는 제품을 만들지 않고, 가능성 있는 스타트업에 돈을 대요.'},
          {t:'실리콘 밸리의 땅값이 가장 싸서',why:'땅값은 비싼 편이에요.'}],
       ex:'맞아요. 이렇게 신기술에 투자하는 자본을 무엇이라고 할까요?'},
      {cho:'ㅂㅊ ㅋㅍㅌ',ans:'벤처 캐피털',q:'잠재력이 있는 신기술에 투자하는 모험 자본은?',
@@ -602,13 +603,13 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balanc
       c:[{t:'기업은 인력이 부족해 채용이 어렵다',why:'영상에서는 이틀 안에 연락이 온다고 했어요.'},
          {t:'노동자는 이직하려면 반드시 다른 도시로 이사해야 한다',why:'같은 지역 안에서 이직할 수 있다고 했어요.'},
          {t:'기업은 숙련된 인재를 구하기 쉽고, 인재가 오가며 창업도 이어진다',ok:1},
-         {t:'모든 직원의 월급이 크게 낮아진다',why:'영상에서 월급이 낮아진다는 말은 없었어요.'}],
+         {t:'기업은 인재를 구하기 쉽지만, 노동자는 한 회사에 오래 머물러야 한다',why:'같은 지역 안에서 이직이 쉬워서 회사를 옮겨 다니는 경우가 많아요.'}],
       ex:'맞아요. 금융·정책 지원이 집중되고 인재가 모이면서 창업이 이어져요.'},
      {q:'고학력 전문직이 늘면 지역의 일자리에는 어떤 변화가 생길까요?',
       c:[{t:'전문직 일자리만 늘고 다른 일자리는 모두 사라진다',why:'지아는 서비스업 일자리도 늘었다고 했어요.'},
          {t:'서비스업과 관련 산업의 일자리도 늘고, 일반 근로자도 임금이 높은 경향이 있다',ok:1},
          {t:'일반 근로자의 임금이 모두 크게 낮아진다',why:'영상에서는 임금이 높은 편이라고 했어요.'},
-         {t:'서비스업이 줄어 가게가 문을 닫는다',why:'오히려 카페와 식당 일자리가 늘었어요.'}],
+         {t:'서비스업 일자리는 늘지만 일반 근로자 임금은 낮다',why:'영상에서는 일반 근로자의 임금도 높은 편이라고 했어요.'}],
       ex:'전문직이 늘면 서비스업과 관련 산업의 일자리도 늘고, 일반 근로자도 다른 지역보다 높은 임금을 받는 경향이 있어요.'}],
     cap:'숙련된 전문 인력이 많고 일자리도 늘어서 사람도 기업도 서로 찾기 쉬워요.'},
 
@@ -621,12 +622,12 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balanc
     qs:[{q:'건물을 높이 올리지 않고 낮고 넓게 지은 이유로 가장 알맞은 것은?',
       c:[{t:'땅값을 아끼려고',why:'실리콘 밸리는 땅값이 비싸서 높게 짓는 것이 오히려 더 이득일 수 있어요.'},
          {t:'접근성을 높여 직원들이 자유롭게 의사소통하도록 이끌려고',ok:1},
-         {t:'외부 사람이 들어오기 어렵게 하려고',why:'영상에서는 마주치고 오가기 쉬운 점을 강조했어요.'},
+         {t:'보안을 강하게 해서 회사의 비밀을 지키려고',why:'영상에서는 오히려 마주치고 오가며 정보를 나누게 하려는 것이었어요.'},
          {t:'건물을 눈에 띄게 높이 보이게 하려고',why:'건물은 높지 않게 지었다고 했어요.'}],
       ex:'낮고 넓은 구조는 접근성을 높여 직원들이 자유롭게 소통하도록 이끌어요.'},
      {q:'건물을 도넛 모양으로 지은 이유로 가장 알맞은 것은?',
       c:[{t:'방을 많이 나눠 직원들이 따로 일하게 하려고',why:'영상에서는 모든 공간이 이어진다고 했어요.'},
-         {t:'건물 바깥 도로를 넓히려고',why:'도로 이야기는 나오지 않았어요.'},
+         {t:'건물을 둥글게 지어 건축비를 줄이려고',why:'목적은 건축비가 아니라 직원들이 서로 만나고 협력하게 하는 거예요.'},
          {t:'모든 공간을 한 고리로 연결해 서로 만나고 공유하기 쉽게 하려고',ok:1},
          {t:'관광객에게 보여 주는 모양으로 만들려고',why:'목적은 직원들의 일하는 방식과 관련 있어요.'}],
       ex:'도넛형 구조는 모든 공간을 유기적으로 연결해 서로 만나고 공유하는 일을 쉽게 해요.'},
@@ -645,7 +646,7 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balanc
       c:[{t:'공원이 사라지고 공장이 들어선다',why:'영상에서는 공원과 문화 시설이 늘었다고 했어요.'},
          {t:'도시를 떠나는 기업이 늘어난다',why:'기업과 인재가 선호하는 도시가 되려는 노력이었어요.'},
          {t:'녹지 공간과 문화 시설이 늘고 주거 환경이 쾌적해져 도시 경관이 바뀐다',ok:1},
-         {t:'문화 시설이 줄고 상점만 늘어난다',why:'도서관과 미술관 같은 문화 시설이 생겼어요.'}],
+         {t:'녹지 공간은 늘지만 문화 시설은 줄어든다',why:'도서관과 미술관 같은 문화 시설도 함께 늘었어요.'}],
       ex:'맞아요. 첨단 기업과 인재가 선호하는 환경을 갖추려고 도시의 경관이 변해요. 이런 요소를 무엇이라고 할까요?'},
      {cho:'ㅇㅁㄴㅌ',ans:'어메니티',q:'생활 편의 시설뿐 아니라 한 지역에서 쾌적함과 만족감을 느낄 수 있는 요소를 종합적으로 이르는 말은?',
       hints:['영어 단어예요. 도시가 ‘살기 좋은 정도’와 관련 있어요.','우리말로 ‘쾌적함’이라는 뜻과 가까워요.'],
@@ -659,12 +660,12 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balanc
           ['m','제 월급으로는 엄두가 안 나요.'],
           ['n','첨단 산업이 발달한 도시와 제조업이 쇠퇴한 도시를 나누어 비교해 볼까요?']],
     qs:[{q:'새너제이에서 필요한 연봉은 클리블랜드의 약 몇 배일까요? (51.2 ÷ 6.7)',
-      c:[{t:'약 3배',why:'51.2를 6.7로 나눠 보세요. 3배보다 훨씬 커요.'},{t:'약 5배',why:'조금 더 커요. 51.2 ÷ 6.7을 다시 계산해 보세요.'},{t:'약 8배',ok:1},{t:'약 20배',why:'너무 커요. 6.7의 20배는 134예요.'}],
+      c:[{t:'약 3배',why:'51.2를 6.7로 나눠 보세요. 3배보다 훨씬 커요.'},{t:'약 5배',why:'조금 더 커요. 51.2 ÷ 6.7을 다시 계산해 보세요.'},{t:'약 8배',ok:1},{t:'약 44배',why:'51.2에서 6.7을 빼면 44쯤이에요. 하지만 ‘몇 배’는 빼기가 아니라 나누기예요.'}],
       ex:'51.2 ÷ 6.7 ≈ 7.6이므로 약 8배예요. 같은 중위 가격 주택이라도 도시에 따라 필요한 연봉이 크게 달라요.'},
      {q:'첨단 산업이 발달한 도시의 필요 연봉이 높은 까닭을 가장 알맞게 해석한 것은?',
       c:[{t:'주택이 남아돌기 때문에',why:'주택이 남아돌면 가격이 내려가요.'},
          {t:'고임금 일자리와 인구가 몰려 주택 가격이 높아졌기 때문에',ok:1},
-         {t:'제조업이 활발하게 성장하고 있기 때문에',why:'자료에서 제조업이 쇠퇴한 도시는 필요 연봉이 낮아요.'},
+         {t:'일자리가 많아서 누구나 쉽게 취직할 수 있기 때문에',why:'일자리가 많은 것만으로는 필요 연봉이 오르지 않아요. 집을 구하는 사람이 몰려 주택 가격이 오른 것이 까닭이에요.'},
          {t:'땅이 매우 넓기 때문에',why:'땅이 넓다면 집값이 낮아야 해요.'}],
       ex:'첨단 산업이 발달한 도시는 고임금 일자리가 늘지만 주택 가격도 높아요. 제조업이 쇠퇴한 러스트 벨트 도시는 대체로 낮아요.'}],
     cap:'고임금 일자리와 인구가 몰리면서 주택 가격이 크게 올랐어요.'},
@@ -679,7 +680,7 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balanc
       c:[{t:'모든 사람이 시내 가까이에 살게 된다',why:'톰은 외곽에서 출퇴근한다고 했어요.'},
          {t:'소득과 상관없이 집값이 같아진다',why:'시내 집값이 높아서 외곽으로 밀려난 거예요.'},
          {t:'소득 격차가 커지면서 소득에 따라 사는 공간이 나뉜다',ok:1},
-         {t:'외곽의 집값이 시내보다 훨씬 비싸진다',why:'톰은 비싼 시내를 감당하지 못해 외곽에 살아요.'}],
+         {t:'모든 지역의 집값이 똑같이 올라서 불평등이 줄어든다',why:'집값은 지역마다 다르게 올라요. 시내가 더 올라서 소득에 따라 사는 곳이 나뉘어요.'}],
       ex:'맞아요. 고용 구조가 양극화되어 소득 격차가 커지면 사는 곳도 나뉘어요. 이런 현상을 무엇이라고 할까요?'},
      {cho:'ㄱㄱ ㅂㅍㄷ',ans:'공간 불평등',q:'도시 안에서 고소득층 주거지와 저소득층 주거지 사이에 생활 환경과 기반 시설 이용의 격차가 생기는 현상은?',
       hints:[],
@@ -695,7 +696,7 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balanc
     qs:[{q:'로사의 이야기에서 나타난 도시 변화로 알맞은 것은?',
       c:[{t:'인구가 줄어 손님이 사라졌다',why:'로사는 손님이 늘었다고 했어요.'},
          {t:'집값과 생활비가 올라 이를 감당하지 못한 주민이 밀려난다',ok:1},
-         {t:'공장이 늘어 장사하기 어려워졌다',why:'이야기의 핵심은 공장이 아니라 월세와 생활비예요.'},
+         {t:'손님이 늘어 돈을 많이 번 가게 주인이 스스로 외곽으로 이사한다',why:'로사는 돈을 더 번 것이 아니라, 오른 월세와 생활비를 감당하지 못한 거예요.'},
          {t:'정부가 오래된 가게를 강제로 닫게 했다',why:'그런 이야기는 나오지 않았어요.'}],
       ex:'인근 지역의 주택 가격과 생활비가 높아지면, 이를 감당하지 못한 주민들이 거리로 내몰리거나 점차 외곽으로 밀려날 수 있어요.'}],
     cap:'오래 살던 주민이 오른 월세와 생활비 때문에 밀려나요.'}
@@ -715,8 +716,8 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balanc
   function ptsOf(k){return 200}
   function choPts(q){return BONUS[q.ans]?800:400}
   function sum(o,m){var n=0;for(var k in o) n+=o[k]*(m||1);return n}
-  function money(){ var p=PAY0+sum(gain)+sum(gotc)-50*sum(wrongN)-10*sum(hintC); return {pay:Math.max(1000,p), rent:RENT[maxDone()]}; }
-  function ledger(n){ var g=0,w=0,h=0,c=0,pre=n+'-',k; for(k in gain) if(k.indexOf(pre)===0) g+=gain[k]; for(k in gotc) if(k.indexOf(pre)===0) c+=gotc[k]; for(k in wrongN) if(k.indexOf(pre)===0) w+=wrongN[k]*50; for(k in hintC) if(k.indexOf(pre)===0) h+=hintC[k]*10; return {g:g+c,w:w,h:h}; }
+  function money(){ var p=PAY0+sum(gain)+sum(gotc)-50*sum(wrongN)-50*sum(hintC); return {pay:Math.max(1000,p), rent:RENT[maxDone()]}; }
+  function ledger(n){ var g=0,w=0,h=0,c=0,pre=n+'-',k; for(k in gain) if(k.indexOf(pre)===0) g+=gain[k]; for(k in gotc) if(k.indexOf(pre)===0) c+=gotc[k]; for(k in wrongN) if(k.indexOf(pre)===0) w+=wrongN[k]*50; for(k in hintC) if(k.indexOf(pre)===0) h+=hintC[k]*50; return {g:g+c,w:w,h:h}; }
   function sgn(n){return (n>0?'+$':'−$')+fmt(Math.abs(n))}
   var myName='',step=0,qi=0,wrong=[],qdone=false,sceneDone=false,clipIdx=0,clipDone=false,playing=false,tab='clip',score=0,timer=null,snd=false,hintN=0;
   var scene=function(){return SC[step-1]};
@@ -840,10 +841,10 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balanc
     h+='</div>';
     if(hintN&&!qdone){ h+='<ul class="hints">'+q.hints.slice(0,hintN).map(function(t){return '<li>'+t+'</li>'}).join('')+'</ul>'; }
     if(!qdone){ h+='<div class="guess"><label for="gs">우리 짝의 답을 써 보세요 (맞히면 월급 +$'+choPts(q)+')</label><input id="gs" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="정답 쓰기"><button class="cbtn pri" id="gchk">확인</button></div><p class="gmsg" id="gmsg" aria-live="polite"></p>'; }
-    if(!qdone){ h+='<div class="ctrl">'+(q.hints.length?'<button class="cbtn" id="hint"'+(hintN>=q.hints.length?' disabled':'')+'>힌트 보기 −$10 ('+hintN+' / '+q.hints.length+')</button>':'')+'<button class="cbtn" id="reveal">모르겠어요, 정답 공개</button></div>'; }
+    if(!qdone){ h+='<div class="ctrl">'+(q.hints.length?'<button class="cbtn" id="hint"'+(hintN>=q.hints.length?' disabled':'')+'>힌트 보기 −$50 ('+hintN+' / '+q.hints.length+')</button>':'')+'<button class="cbtn" id="reveal">모르겠어요, 정답 공개</button></div>'; }
     return h;
   }
-  function lvTag(){ var k=step+'-'+qi, q=curQ(); if(q.cho) return '<span class="role'+(BONUS[q.ans]?' hard':'')+'">'+(BONUS[q.ans]?'★ 보너스 문제 · ':'')+'초성 퀴즈 · 맞히면 +$'+choPts(q)+(q.hints.length?' · 힌트 1개당 −$10':' · 힌트 없음')+'</span>'; return '<span class="role">한 번에 맞히면 +$'+ptsOf(k)+' · 틀리면 −$100</span>'; }
+  function lvTag(){ var k=step+'-'+qi, q=curQ(); if(q.cho) return '<span class="role'+(BONUS[q.ans]?' hard':'')+'">'+(BONUS[q.ans]?'★ 보너스 문제 · ':'')+'초성 퀴즈 · 맞히면 +$'+choPts(q)+(q.hints.length?' · 힌트 1개당 −$50':' · 힌트 없음')+'</span>'; return '<span class="role">한 번에 맞히면 +$'+ptsOf(k)+' · 틀리면 −$50</span>'; }
   function moneyCard(){
     var m=money(), dp=m.pay-sm.pay, dr=m.rent-sm.rent, mx=10000, L=ledger(step);
     return '<div class="mc"><strong>이번 장면이 끝났어요! 월급과 월세는?</strong><div class="rows">'
@@ -896,7 +897,7 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balanc
     if(step===0){
       h+='<span class="tag plain">오늘의 활동 · 짝 활동</span><h2>신입 사원의 월급과 월세는 어떻게 변할까요?</h2>'
         +'<p class="story-text">짝과 함께 신입 사원이 되어 실리콘 밸리에서 6가지 일을 겪어요. 영상 속 인물의 이야기를 듣고 문제를 풀면 월급이 올라요. 그런데 도시가 커지면 월세는 어떻게 될까요? 끝까지 가서 확인해 봐요!</p>'
-        +'<div class="sum"><div class="fb yes"><strong>짝 규칙</strong>짝과 이야기해서 답을 정하고 함께 눌러요. 끝나면 소감을 쓰고 선생님께 제출해요.</div><div class="fb no"><strong>월급·월세 게임</strong>한 번에 맞히면 월급이 올라요(객관식 +$200). 초성 퀴즈는 직접 맞히면 +$400, ★ 보너스 문제는 +$800이에요. 객관식을 틀리면 −$50, 힌트는 1개당 −$10이에요. 그런데 월세는 계속 올라요!</div></div>'
+        +'<div class="sum"><div class="fb yes"><strong>짝 규칙</strong>짝과 이야기해서 답을 정하고 함께 눌러요. 끝나면 소감을 쓰고 선생님께 제출해요.</div><div class="fb no"><strong>월급·월세 게임</strong>한 번에 맞히면 월급이 올라요(객관식 +$200). 초성 퀴즈는 직접 맞히면 +$400, ★ 보너스 문제는 +$800이에요. 객관식을 틀리면 −$50, 힌트는 1개당 −$50이에요. 그런데 월세는 계속 올라요!</div></div>'
         +'<div class="nm"><label for="nm">신입 사원 이름을 짝과 함께 지어 주세요</label><input id="nm" type="text" maxlength="8" autocomplete="off" placeholder="예: 지우" value="'+(myName||'')+'"></div><button class="btn" id="start">출근하기 →</button><p class="hint">비워 두면 ‘신입 사원’으로 불러요 · 제출한 소감과 점수만 선생님이 볼 수 있어요</p>'+(TEACH?'<button class="btn2" id="topen">교사용: 제출 현황 보기</button>':'');
     } else if(step>=END){
       var rank=score>=Math.round(TOTALQ*.8)?'클러스터 박사':(score>=Math.round(TOTALQ*.5)?'클러스터 사원':'다시 출근해 볼까요?');
