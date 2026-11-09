@@ -724,7 +724,7 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balanc
   /* ================= 상태 ================= */
   var PAY0=4000, RENT=[1500,1500,1500,1700,1800,2800,4200];
   var RENTWHY=['','아직은 집값이 그대로예요.','아직은 집값이 그대로예요.','일자리를 찾아 사람이 모여들면서 집을 구하는 사람이 늘었어요.','회사와 사람이 계속 늘어서 월세가 더 올랐어요.','일자리는 빨리 늘지만 집은 천천히 늘어서 집값이 크게 올랐어요.','월세가 부담돼 외곽으로 이사 가는 사람이 생겼고, 시내 월세는 더 올랐어요.'];
-  var BONUS={'집적 이익':1,'공간 불평등':1}, gain={}, wrongN={}, hintC={}, solvedQ={}, refl='', pairNames='', jobPick='', subState='', subMsg='', subRef=null, tview=false, tdata=null, DB=null, UID=null, TEACH=false, tunsub=null;
+  var BONUS={'집적 이익':1,'공간 불평등':1}, gain={}, wrongN={}, hintC={}, solvedQ={}, refl='', pairNames='', jobPick='', classPick='', subState='', subMsg='', subRef=null, tview=false, tdata=null, DB=null, UID=null, TEACH=false, tunsub=null;
   var doneS={},got={},gotc={},fin='',sm={pay:PAY0,rent:RENT[0]},lastP=0,lastR=0;
   function fmt(n){return n.toLocaleString('en-US')}
   function maxDone(){var m=0;for(var k in doneS){ if(doneS[k]&&+k>m) m=+k; }return m}
@@ -878,18 +878,19 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balanc
   function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
   function summaryText(){
     var m=money();
-    return '[실리콘 밸리 월급·월세 게임]\n이름: '+(pairNames||'')+'\n신입 사원: '+ME.name+'\n점수: '+score+' / '+TOTALQ+' (처음에 맞힌 객관식)\n월급 $'+fmt(m.pay)+' / 월세 $'+fmt(m.rent)+' / 남는 돈 '+((m.pay-m.rent)<0?'−':'')+'$'+fmt(Math.abs(m.pay-m.rent))+'\n다시 선택한다면 실리콘 밸리에 취직: '+(jobPick==='yes'?'취직하겠다':(jobPick==='no'?'취직하지 않겠다':''))+'\n이유: '+(refl||'');
+    return '[실리콘 밸리 월급·월세 게임]\n반: '+(classPick?classPick+'반':'')+'\n이름: '+(pairNames||'')+'\n신입 사원: '+ME.name+'\n점수: '+score+' / '+TOTALQ+' (처음에 맞힌 객관식)\n월급 $'+fmt(m.pay)+' / 월세 $'+fmt(m.rent)+' / 남는 돈 '+((m.pay-m.rent)<0?'−':'')+'$'+fmt(Math.abs(m.pay-m.rent))+'\n다시 선택한다면 실리콘 밸리에 취직: '+(jobPick==='yes'?'취직하겠다':(jobPick==='no'?'취직하지 않겠다':''))+'\n이유: '+(refl||'');
   }
   function submit(){
     var m=money();
+    if(!classPick){ subMsg='도시의 미래 탐구 반(A/B/C)을 선택해 주세요.'; renderRight(); return; }
     if(pairNames.trim().length<2){ subMsg='학번과 이름을 써 주세요.'; renderRight(); return; }
     if(!jobPick){ subMsg='취직할지 선택해 주세요.'; renderRight(); return; }
     if(refl.trim().length<10){ subMsg='이유를 한두 문장(10자 이상) 써 주세요.'; renderRight(); return; }
     if(!CAN){ subMsg='이 기기에서는 제출할 수 없어요. 아래 글을 복사해서 보내요.'; renderRight(); return; }
     subState='sending'; subMsg='제출하는 중…'; renderRight();
-    var data={names:pairNames.trim(),char:ME.name,refl:refl.trim(),rehire:jobPick,score:score,total:TOTALQ,pay:m.pay,rent:m.rent,left:m.pay-m.rent,hints:sum(hintC),wrongs:sum(wrongN),choice:fin,at:Date.now()};
+    var data={cls:classPick,names:pairNames.trim(),char:ME.name,refl:refl.trim(),rehire:jobPick,score:score,total:TOTALQ,pay:m.pay,rent:m.rent,left:m.pay-m.rent,hints:sum(hintC),wrongs:sum(wrongN),choice:fin,at:Date.now()};
     subRef=subRef||('t_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
-    data={names:data.names,score:data.score,total:data.total,pay:data.pay,rehire:data.rehire,refl:data.refl};
+    data={cls:data.cls,names:data.names,score:data.score,total:data.total,pay:data.pay,rehire:data.rehire,refl:data.refl};
     var body=JSON.stringify(data), opt={method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:body};
     var p=fetch(SHEET_URL,opt).then(function(r){ return r.text().then(function(t){ var j; try{ j=JSON.parse(t); }catch(e){ j=null; } if(!r.ok||(j&&j.ok===false)) throw new Error('bad'); }); },
       function(){ return fetch(SHEET_URL,{method:'POST',mode:'no-cors',headers:opt.headers,body:body}); });
@@ -927,7 +928,8 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balanc
       h+='<div class="sum" style="margin-top:1rem"><div class="fb yes"><strong>좋은 변화</strong><em>클러스터</em>와 <em>집적 이익</em>으로 창업·인재·일자리가 늘고, 수평적 설계로 일하기 좋은 공간이 만들어져요</div>'
         +'<div class="fb no"><strong>어려운 변화</strong>주택 가격과 생활비가 오르고 소득 격차가 커지면서 <em>공간 불평등</em>이 심해지고, 주민이 외곽으로 밀려나요</div></div>'
         +'<div class="mc" id="subbox"><strong>활동 소감과 제출</strong>'
-        +'<label for="pn" style="font-weight:700">우리 짝의 학번과 이름 (두 명)</label><input id="pn" class="tin" type="text" maxlength="40" autocomplete="off" placeholder="예: 20901 김지우, 20902 박민서" value="'+esc(pairNames)+'">'
+        +'<p style="font-weight:700;margin:.2rem 0 .2rem">도시의 미래 탐구 반을 골라요</p><div>'+['A','B','C'].map(function(c){ return '<button class="btn2'+(classPick===c?' on':'')+'" data-cls="'+c+'">'+c+'반</button>'; }).join('')+'</div>'
+        +'<label for="pn" style="font-weight:700;display:block;margin-top:.6rem">우리 짝의 학번과 이름 (두 명)</label><input id="pn" class="tin" type="text" maxlength="40" autocomplete="off" placeholder="예: 20901 김지우, 20902 박민서" value="'+esc(pairNames)+'">'
         +'<label for="rf" style="font-weight:700;display:block;margin-top:.6rem">나의 선택과 이유</label><p style="margin:.2rem 0;font-size:.95rem">다시 선택할 수 있다면, 실리콘 밸리에 취직하겠습니까? 그 이유는?</p><div><button class="btn2'+(jobPick==='yes'?' on':'')+'" id="jyes">취직하겠다</button><button class="btn2'+(jobPick==='no'?' on':'')+'" id="jno">취직하지 않겠다</button></div><textarea id="rf" class="tin" rows="4" maxlength="300" placeholder="그렇게 선택한 이유를 한두 문장으로 써 보세요">'+esc(refl)+'</textarea>'
         +'<p class="gmsg" id="smsg" aria-live="polite">'+esc(subMsg)+'</p>'
         +'<button class="btn" id="submit"'+(subState==='sending'?' disabled':'')+'>'+(subState==='done'?'다시 제출하기':'선생님께 제출하기')+'</button>'
@@ -975,6 +977,7 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balanc
     var to=$('#topen'); if(to) to.addEventListener('click',openTeacher);
     var pn=$('#pn'); if(pn) pn.addEventListener('input',function(){ pairNames=pn.value; var c=$('#cp'); if(c) c.value=summaryText(); });
     var rf=$('#rf'); if(rf) rf.addEventListener('input',function(){ refl=rf.value; var c=$('#cp'); if(c) c.value=summaryText(); });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-cls]'),function(b){ b.addEventListener('click',function(){ classPick=b.getAttribute('data-cls'); renderRight(); }); });
     var jy=$('#jyes'); if(jy) jy.addEventListener('click',function(){ jobPick='yes'; renderRight(); });
     var jn=$('#jno'); if(jn) jn.addEventListener('click',function(){ jobPick='no'; renderRight(); });
     var sb=$('#submit'); if(sb) sb.addEventListener('click',submit);
@@ -1018,7 +1021,7 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.2;text-wrap:balanc
     else if(step<SC.length) startScene(step+1);
     else { step=END; renderAll(); window.scrollTo(0,0); }
   }
-  function restart(){ clearTimeout(timer); stopSpeech(); doneS={}; got={}; gotc={}; gain={}; wrongN={}; hintC={}; solvedQ={}; refl=''; pairNames=''; jobPick=''; subState=''; subMsg=''; subRef=null; tview=false; fin=''; sm={pay:PAY0,rent:RENT[0]}; step=0; score=0; qi=0; wrong=[]; qdone=false; sceneDone=false; clipDone=false; playing=false; tab='clip'; hintN=0; renderAll(); window.scrollTo(0,0); }
+  function restart(){ clearTimeout(timer); stopSpeech(); doneS={}; got={}; gotc={}; gain={}; wrongN={}; hintC={}; solvedQ={}; refl=''; pairNames=''; jobPick=''; classPick=''; subState=''; subMsg=''; subRef=null; tview=false; fin=''; sm={pay:PAY0,rent:RENT[0]}; step=0; score=0; qi=0; wrong=[]; qdone=false; sceneDone=false; clipDone=false; playing=false; tab='clip'; hintN=0; renderAll(); window.scrollTo(0,0); }
   function renderAll(){ renderTop(); renderLeft(); renderRight(); }
 
   document.addEventListener('keydown',function(e){
